@@ -1,1 +1,5 @@
 .env
+/myvenv
+telegram_bot/my_bot.session
+telegram_bot/my_bot.session-journal
+*.pyc

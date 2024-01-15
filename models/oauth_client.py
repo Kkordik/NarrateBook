@@ -6,15 +6,17 @@ from typing import Union
 import bcrypt
 
 
-class OAuthClientService:
-    def __init__(self, async_session: Union[AsyncSession, sessionmaker]):
+class OAuthClientModel:
+    def __init__(self, async_session: Union[AsyncSession, sessionmaker], orm_obj: OAuthClient = None):
         self.async_session = async_session
+        self.orm_obj = orm_obj
+        
 
-    async def get_redirect_uri(self, client_id: str):
+    async def get_redirect_uri(self, client_id: str) -> str:
         async with self.async_session() as session:
             result = await session.execute(select(OAuthClient).where(OAuthClient.client_id == client_id))
-            client = result.scalar_one_or_none()
-            return client.redirect_uri if client else None
+            self.orm_obj = result.scalar_one_or_none()
+            return self.orm_obj.redirect_uri if self.orm_obj else None
 
     @staticmethod
     def hash_client_secret(client_secret: str):
@@ -30,8 +32,8 @@ class OAuthClientService:
             result = await session.execute(
                 select(OAuthClient).where(OAuthClient.client_id == client_id)
             )
-            client = result.scalar_one_or_none()
+            self.orm_obj = result.scalar_one_or_none()
 
-            if client and self.verify_client_secret(provided_secret, client.client_secret):
+            if self.orm_obj and self.verify_client_secret(provided_secret, self.orm_obj.client_secret):
                 return True
             return False
