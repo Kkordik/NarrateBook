@@ -1,6 +1,6 @@
-from models.token import TokenModel
-from models.user import UserModel
-from models.oauth_client import OAuthClientModel
+from models.orm_interaction.user import UserModel
+from models.orm_interaction.oauth_client import OAuthClientModel
+from models.orm_interaction.book import BookModel
 from models.oauth_code import OAuthCodeModel
 from database.init_session import async_session
 from pyrogram import Client, filters
@@ -54,6 +54,17 @@ async def start_command(_, message):
         await asyncio.sleep(60*int(os.getenv('CODE_EXPIRE_MIN')))
         await reply_msg.edit_reply_markup(InlineKeyboardMarkup([[InlineKeyboardButton("Expired", callback_data='expired')]]))
     else:
-        await message.reply("Hello! This is an auth bot for narratebook.com")
+        user_books = await BookModel(async_session).get_user_books(message.from_user.id)
+
+        books_list_str = ''
+        for i, book in enumerate(user_books):
+            if isinstance(book.last_char_id, int) and isinstance(book.char_len, int):
+                progress_percentage = int(book.last_char_id / book.char_len) * 100
+                books_list_str += f"  {i}. {book.book_title}  -  {progress_percentage}%\n"
+            else:
+                books_list_str += f"  {i}. {book.book_title}\n"
+
+        await message.reply(f"Hello! This is an auth bot for narratebook.com\n{books_list_str}")
+
 
 app.run()  # Run the bot

@@ -15,26 +15,27 @@ load_dotenv()
 
 
 class TokenModel:
-    def __init__(self, async_session: Union[AsyncSession, sessionmaker], orm_obj: AccessToken = None, access_token: str = None):
+    def __init__(self, async_session: Union[AsyncSession, sessionmaker], orm_obj: AccessToken = None):
         self.async_session = async_session
         self.orm_obj = orm_obj
 
-    def generate_access_token(self):
-        self.expiry = datetime.utcnow() + timedelta(weeks=1)  # Token expires in 1 week
-        self.access_token = secrets.token_urlsafe(32)
-        return self.access_token, self.expiry
+    @staticmethod
+    def generate_access_token():
+        expiry = datetime.utcnow() + timedelta(weeks=1)  # Token expires in 1 week
+        access_token = secrets.token_urlsafe(32)
+        return access_token, expiry
 
     async def create_and_store_access_token(self, user_id: int):
-        self.generate_access_token()
+        access_token, expiry = self.generate_access_token()
         async with self.async_session() as session:
-            token_entry = AccessToken(access_token=self.hash_token(self.access_token, os.getenv('SECRET_KEY')), user_id=user_id, expiry=self.expiry)
+            token_entry = AccessToken(access_token=self.hash_token(access_token, os.getenv('SECRET_KEY')), user_id=user_id, expiry=expiry)
             session.add(token_entry)
             try:
                 await session.commit()
             except Exception as e:
                 await session.rollback()
                 raise e
-        return self.access_token
+        return access_token
 
     @staticmethod
     def hash_token(token: str, salt: str):

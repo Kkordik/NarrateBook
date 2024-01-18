@@ -1,5 +1,7 @@
 import os
 import xml.etree.ElementTree as ET
+import tiktoken
+
 
 def require_open_context(method):
     def wrapper(self, *args, **kwargs):
@@ -59,6 +61,10 @@ class Ebook:
             raise Exception("Could not read the file, it is not found")
         return self._file.read()
 
+    @require_open_context
+    def get_text(self):
+        return self.get_raw()
+
 
 class Fb2(Ebook):
     file_type = ".fb2"
@@ -94,9 +100,10 @@ class Fb2(Ebook):
     def get_raw(self):
         return ET.tostring(self._root, encoding='unicode')
 
+
 # Example usage
 try:
-    with Fb2('piknik_na_obochine.fb2') as ebook:
+    with Ebook('temp.txt') as ebook:
         print(ebook.get_raw())
 except Exception as e:
     print(f"Error occurred: {e}")

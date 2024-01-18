@@ -12,6 +12,14 @@ class TokenRequestForm(BaseModel):
 
 
 class UserResponseModel(BaseModel):
-    user_id: int = None
-    date_time: datetime = None
+    user_id: int
+    date_time: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class Book(BaseModel):
+    book_id: int
+    book_title: str
+    book_author: str
+    book_description: str
     model_config = ConfigDict(from_attributes=True)

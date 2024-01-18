@@ -10,7 +10,6 @@ class OAuthClientModel:
     def __init__(self, async_session: Union[AsyncSession, sessionmaker], orm_obj: OAuthClient = None):
         self.async_session = async_session
         self.orm_obj = orm_obj
-        
 
     async def get_redirect_uri(self, client_id: str) -> str:
         async with self.async_session() as session:
